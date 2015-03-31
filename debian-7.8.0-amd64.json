@@ -30,6 +30,7 @@
     "type": "shell",
     "scripts": [
       "scripts/debian/init.sh",
+      "scripts/debian/rsync.sh",
       "scripts/debian/virtualbox.sh",
       "scripts/common/vagrant.sh",
       "scripts/common/sshd.sh",
