@@ -1,0 +1,64 @@
+{
+  "builders": [{
+    "type": "virtualbox-iso",
+    "guest_os_type": "OpenBSD_64",
+    "iso_url": "{{user `mirror`}}/5.6/amd64/cd56.iso",
+    "iso_checksum": "99623a7a8c2fd26d8058a6c5b873b4e271ca97a2e8f0897209c53fea0c741b63",
+    "iso_checksum_type": "sha256",
+    "output_directory": "output-openbsd-5.6-amd64-dev",
+    "vm_name": "packer-openbsd-5.6-amd64",
+    "disk_size": "{{user `disk_size`}}",
+    "headless": "{{user `headless`}}",
+    "http_directory": "http",
+    "boot_wait": "15s",
+    "boot_command": [
+      "S<enter><wait>",
+      "dhclient em0<enter><wait>",
+      "ftp -o /tmp/install.conf http://{{.HTTPIP}}:{{.HTTPPort}}/openbsd-5.6/install.conf<enter><wait>",
+      "/install -a -f /tmp/install.conf<enter><wait>",
+      "cat <<EOF > /mnt/etc/sudoers<enter>",
+      "<enter>",
+      "#includedir /etc/sudoers.d<enter>",
+      "EOF<enter><wait>",
+      "mkdir /mnt/etc/sudoers.d<enter><wait>",
+      "cat <<EOF > /mnt/etc/sudoers.d/vagrant<enter>",
+      "Defaults:vagrant !requiretty<enter>",
+      "vagrant ALL=(ALL) NOPASSWD: ALL<enter>",
+      "EOF<enter><wait>",
+      "chmod 440 /mnt/etc/sudoers.d/vagrant<enter><wait>",
+      "reboot<enter>"
+    ],
+    "ssh_wait_timeout": "60m",
+    "ssh_username": "vagrant",
+    "ssh_password": "vagrant",
+    "guest_additions_mode": "disable",
+    "shutdown_command": "sudo shutdown -h -p now",
+    "vboxmanage": [
+      ["modifyvm", "{{.Name}}", "--memory", "{{user `memory`}}"],
+      ["modifyvm", "{{.Name}}", "--cpus", "{{user `cpus`}}"]
+    ]
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "scripts": [
+      "scripts/openbsd/init.sh",
+      "scripts/common/vagrant.sh",
+      "scripts/common/sshd.sh",
+      "scripts/openbsd/minimize.sh"
+    ]
+  }],
+  "post-processors": [{
+    "type": "vagrant",
+    "compression_level": "{{user `compression_level`}}",
+    "output": "openbsd-5.6-amd64-dev.box",
+    "vagrantfile_template": "vagrantfile_templates/openbsd.rb"
+  }],
+  "variables": {
+    "compression_level": 6,
+    "cpus": "1",
+    "disk_size": 40000,
+    "headless": false,
+    "memory": "512",
+    "mirror": "http://ftp.openbsd.org/pub/OpenBSD"
+  }
+}
